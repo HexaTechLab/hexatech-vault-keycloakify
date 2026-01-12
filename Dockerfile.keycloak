@@ -4,6 +4,9 @@
 # Stage 1: Build the Keycloakify theme
 FROM node:20-alpine AS theme-builder
 
+# Install Maven (required by Keycloakify)
+RUN apk add --no-cache maven
+
 WORKDIR /theme
 
 # Copy theme source
