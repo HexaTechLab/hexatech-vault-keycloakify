@@ -1,0 +1,34 @@
+{
+  "name": "hexatech-vault-keycloak-theme",
+  "version": "1.0.0",
+  "description": "HexaTechVault Keycloak theme built with Keycloakify",
+  "author": "HexaTechVault Team",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build-keycloak-theme": "npm run build && keycloakify build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "storybook": "keycloakify start-keycloak"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.16.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "keycloakify": "^11.3.5",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3"
+  }
+}

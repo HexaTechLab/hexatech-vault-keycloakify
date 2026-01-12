@@ -1,0 +1,32 @@
+# Node modules (will be reinstalled during build)
+node_modules
+
+# Build outputs (will be regenerated)
+dist
+dist_keycloak
+
+# Development files
+.vite
+.eslintcache
+
+# Git files
+.git
+.gitignore
+.github
+
+# Documentation
+docs
+*.md
+
+# Scripts
+scripts
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage
+
+# OS
+.DS_Store

@@ -1,0 +1,185 @@
+# GitHub Actions Workflow pour build et publication du thème Keycloak
+# Déclenché sur push vers main/develop, PR, et création de release
+
+name: Build and Publish Keycloak Theme
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'Dockerfile.keycloak'
+      - '.github/workflows/build-and-publish.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'package.json'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: false
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/keycloak-theme
+
+jobs:
+  build-theme:
+    name: Build Keycloak Theme
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    outputs:
+      jar-size: ${{ steps.jar-info.outputs.size }}
+      jar-path: ${{ steps.jar-info.outputs.path }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint theme code
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Build Keycloakify theme
+        run: npm run build-keycloak-theme
+
+      - name: Get JAR info
+        id: jar-info
+        run: |
+          JAR_FILE="dist_keycloak/keycloak-theme-for-kc-22-to-25.jar"
+          JAR_SIZE=$(du -h "$JAR_FILE" | cut -f1)
+          echo "size=$JAR_SIZE" >> $GITHUB_OUTPUT
+          echo "path=$JAR_FILE" >> $GITHUB_OUTPUT
+          echo "✅ JAR built: $JAR_SIZE" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload JAR as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: keycloak-theme-jar
+          path: ${{ steps.jar-info.outputs.path }}
+          retention-days: 90
+
+      - name: Upload JAR to release (if release event)
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=${{ github.event.release.tag_name }}
+          JAR_FILE="${{ steps.jar-info.outputs.path }}"
+          RELEASE_JAR="hexatech-vault-theme-${VERSION}.jar"
+
+          cp "$JAR_FILE" "$RELEASE_JAR"
+
+          gh release upload "$VERSION" "$RELEASE_JAR" \
+            --repo "${{ github.repository }}" \
+            --clobber
+
+  build-docker-image:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: build-theme
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.keycloak
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Generate Docker image summary
+        run: |
+          echo "## 🐳 Docker Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Registry:** ${{ env.REGISTRY }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Pull command:**" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  create-release-summary:
+    name: Create Release Summary
+    runs-on: ubuntu-latest
+    needs: [build-theme, build-docker-image]
+    if: github.event_name == 'release'
+
+    steps:
+      - name: Generate release summary
+        run: |
+          echo "## 🎉 Keycloak Theme Release" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ github.event.release.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**JAR Size:** ${{ needs.build-theme.outputs.jar-size }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**JAR Download:**" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "curl -L -o hexatech-vault-theme.jar \\" >> $GITHUB_STEP_SUMMARY
+          echo "  https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/hexatech-vault-theme-${{ github.event.release.tag_name }}.jar" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Docker Image:**" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
