@@ -51,16 +51,24 @@ Le JAR est généré dans `dist_keycloak/keycloak-theme-for-kc-22-to-25.jar` (~2
 ### Docker Compose (local)
 
 ```bash
-# Build
+# 1. Build du JAR
 npm run build-keycloak-theme
 
-# Télécharger ou copier le JAR dans Keycloak
+# 2. Copier le JAR dans l'infra (un seul JAR !)
 cp dist_keycloak/keycloak-theme-for-kc-22-to-25.jar \
-   /path/to/keycloak/providers/hexatech-vault-theme.jar
+   ../hexatech-vault-infra/infra/keycloak/themes/
 
-# Redémarrer
-docker-compose restart keycloak
+# 3. Rebuilder l'image et relancer
+cd ../hexatech-vault-infra
+docker compose build keycloak
+docker compose up -d keycloak
 ```
+
+> **Important :** toujours `build` + `up` après avoir copié un nouveau JAR.
+> Un simple `restart` ne recharge pas l'image — le container continuerait à tourner
+> avec l'ancienne version du JAR en mémoire JVM.
+>
+> Voir **[docs/deployment.md](docs/deployment.md)** pour les détails et les pièges à éviter.
 
 ### Kubernetes
 
@@ -128,10 +136,19 @@ npm run preview
 
 ### Le thème n'apparaît pas dans Keycloak
 
-Vérifier que :
-1. Le JAR est bien dans `/opt/keycloak/providers/`
-2. Keycloak a redémarré après l'ajout du JAR
-3. Les logs Keycloak ne montrent pas d'erreur : `kubectl logs -l app=keycloak`
+Vérifier dans l'ordre :
+1. L'image a été rebuildée après la copie du JAR : `docker compose build keycloak`
+2. Un seul JAR est présent dans `infra/keycloak/themes/` (uniquement `kc-22-to-25`)
+3. Le thème `hexatech-vault` est activé dans le realm : **Realm settings → Themes → Login theme**
+4. Les logs ne montrent pas d'erreur : `docker logs hexatech-keycloak --tail 50`
+
+### Erreur `ZipFile invalid LOC header`
+
+Deux causes possibles :
+- **Deux JARs présents simultanément** → supprimer `keycloak-theme-for-kc-all-other-versions.jar`
+- **JAR remplacé sans rebuild de l'image** → `docker compose build keycloak && docker compose up -d keycloak`
+
+Voir **[docs/deployment.md — Pièges à éviter](docs/deployment.md#pièges-à-éviter)** pour l'explication détaillée.
 
 ### Erreur de build npm
 

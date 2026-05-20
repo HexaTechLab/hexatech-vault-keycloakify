@@ -12,11 +12,12 @@
 Ce repository contient le thème Keycloak personnalisé pour HexaTechVault, développé avec React, TypeScript et Keycloakify.
 
 **Fonctionnalités :**
-- ✅ Pages de connexion (Login, Register, Logout, Error)
-- ✅ Support SSO (FranceConnect, Google, Microsoft, Facebook)
-- ✅ Design tokens HexaTechVault (couleur primaire cyan)
+- ✅ Pages Login, Register, Logout, Error
+- ✅ Design CryptArc — layout split-panel, vert `#2d5d4f`, polices Fraunces + Inter Tight
+- ✅ SSO Google, Microsoft, Apple, Facebook
+- ✅ Chiffrement E2EE mis en avant (trust pill, ambient meta)
 - ✅ Accessibilité WCAG 2.1 AA
-- ✅ Responsive design
+- ✅ Responsive (320 px → 1440 px)
 - ✅ Internationalisation (français par défaut)
 - ✅ Compatible Keycloak 22-25 (testé sur 24.0)
 
@@ -72,10 +73,9 @@ hexatech-vault-keycloakify/
 
 ## 📚 Documentation
 
-- **[Deployment Guide](docs/deployment.md)** - Guide complet de déploiement
+- **[Deployment Guide](docs/deployment.md)** - Workflow de déploiement, pièges JAR, activation du thème
 - **[Kubernetes Deployment](docs/kubernetes-deployment.md)** - Déploiement K8s
 - **[Publishing Guide](docs/publishing.md)** - Publication GitHub Packages
-- **[Development Guide](docs/development.md)** - Guide de développement
 
 ## 🤝 Contribution
 
