@@ -3,6 +3,7 @@ import type { KcContext } from '../KcContext';
 import type { I18n } from '../i18n';
 import FormField from '../components/FormField';
 import SsoButtons from '../components/SsoButtons';
+import logoMark from '../../shared/assets/logo-mark.png';
 
 interface RegisterProps {
   kcContext: KcContext & { pageId: 'register.ftl' };
@@ -59,7 +60,7 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
     <div className="auth-shell">
       <header className="auth-topbar">
         <div className="auth-brand">
-          <div className="auth-brand-mark">C</div>
+          <div className="auth-brand-mark"><img src={logoMark} alt="CryptArc" /></div>
           <div>
             <div className="auth-brand-name">CryptArc</div>
             <div className="auth-brand-sub">Coffre familial chiffré</div>

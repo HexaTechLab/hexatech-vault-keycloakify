@@ -16,12 +16,10 @@
 
 .auth-brand { display: flex; gap: 12px; align-items: center; }
 .auth-brand-mark {
-  width: 36px; height: 36px; border-radius: 9px;
-  background: var(--ink); color: white;
+  width: 36px; height: 36px;
   display: grid; place-items: center;
-  font-family: var(--serif); font-weight: 600; font-size: 19px;
-  letter-spacing: -0.02em;
 }
+.auth-brand-mark img { width: 100%; height: 100%; object-fit: contain; }
 .auth-brand-name {
   font-family: var(--serif); font-weight: 500; font-size: 18px;
   line-height: 1; letter-spacing: -0.01em;
