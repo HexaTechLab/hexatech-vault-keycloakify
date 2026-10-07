@@ -187,7 +187,7 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
                     name="password"
                     label={msg('password')}
                     autoComplete="new-password"
-                    placeholder="8 caractères minimum"
+                    placeholder="Votre mot de passe"
                     required
                     icon="lock"
                   />
@@ -211,13 +211,20 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
                 <label className="auth-check required">
                   <input
                     type="checkbox"
-                    name="adultConfirmed"
+                    name="age_confirmed"
+                    value="true"
+                    required
                     checked={adult}
                     onChange={e => setAdult(e.target.checked)}
                   />
                   <span className="auth-check-box"><IcoCheck /></span>
                   <span>Je certifie avoir <strong>plus de 18 ans</strong>.</span>
                 </label>
+                {kcContext.messagesPerField.existsError('age_confirmed') && (
+                  <div className="auth-field-error" role="alert">
+                    {kcContext.messagesPerField.get('age_confirmed')}
+                  </div>
+                )}
 
                 <label className="auth-check required">
                   <input
