@@ -2,6 +2,7 @@ import { useEffect, useRef, FormEvent, useState } from 'react';
 import type { KcContext } from '../KcContext';
 import type { I18n } from '../i18n';
 import FormField from '../components/FormField';
+import KcMessage, { alertClassName } from '../components/KcMessage';
 import SsoButtons from '../components/SsoButtons';
 import logoMark from '../../shared/assets/logo-mark.png';
 
@@ -48,12 +49,17 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
   const [terms, setTerms] = useState(false);
   const [marketing, setMarketing] = useState(false);
 
+  // Sans déclaration dans le user profile du realm, Keycloak ignorerait la valeur envoyée.
+  const ageFieldDeclared = kcContext.profile.attributesByName['age_confirmed'] !== undefined;
+  const canSubmit = terms && (adult || !ageFieldDeclared);
+  const marketingFieldDeclared = kcContext.profile.attributesByName['marketing_consent'] !== undefined;
+
   const firstNameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { firstNameRef.current?.focus(); }, []);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    if (!adult || !terms) e.preventDefault();
+    if (!canSubmit) e.preventDefault();
   };
 
   return (
@@ -63,7 +69,6 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
           <div className="auth-brand-mark"><img src={logoMark} alt="CryptArc" /></div>
           <div>
             <div className="auth-brand-name">CryptArc</div>
-            <div className="auth-brand-sub">Coffre familial chiffré</div>
           </div>
         </div>
         <div className="auth-topbar-r">
@@ -72,7 +77,7 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
           </button>
           <div className="auth-trust-pill">
             <IcoShield />
-            <span>Chiffrement E2EE · Hébergé en France</span>
+            <span>Documents chiffrés · stockés en France</span>
           </div>
         </div>
       </header>
@@ -82,23 +87,6 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
         <div className="auth-left">
           <div className="auth-eyebrow">Bienvenue</div>
           <h1>Un coffre numérique <em>pour les papiers d'une vie.</em></h1>
-          <p className="auth-lede">
-            Centralisez les documents importants de votre famille — actes, contrats,
-            identités, santé — chiffrés localement et accessibles partout.
-          </p>
-          <ul className="auth-feats">
-            <li><span className="dot" aria-hidden="true"></span>Chiffrement E2EE AES-256 dès l'inscription</li>
-            <li><span className="dot" aria-hidden="true"></span>5 Go gratuits, sans carte bancaire</li>
-            <li><span className="dot" aria-hidden="true"></span>OCR sur tous vos imports</li>
-            <li><span className="dot" aria-hidden="true"></span>Hébergement souverain — données en France</li>
-          </ul>
-          <div className="auth-trust-card">
-            <div className="auth-trust-card-l"><IcoShield /></div>
-            <div>
-              <strong>Nous ne pouvons pas lire vos documents.</strong>
-              <span>Votre mot de passe ne quitte jamais votre appareil. La clé de chiffrement est dérivée localement.</span>
-            </div>
-          </div>
         </div>
 
         {/* Right form panel */}
@@ -123,15 +111,13 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
             >
               <div className="auth-form-h">
                 <h2>Créer un compte</h2>
-                <p>Commencez gratuitement. Votre coffre est chiffré localement.</p>
+                <p>Commencez gratuitement. Vos documents sont chiffrés et stockés en France.</p>
               </div>
 
               <SsoButtons social={social} />
 
               {message && (
-                <div className={`kc-alert${message.type === 'success' ? ' success' : ''}`} role="alert">
-                  {message.summary}
-                </div>
+                <KcMessage className={alertClassName(message.type)} html={message.summary} />
               )}
 
               <div className="auth-field-grid">
@@ -191,10 +177,6 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
                     required
                     icon="lock"
                   />
-                  <div className="auth-help">
-                    Ce mot de passe protège vos documents —{' '}
-                    il <strong>ne peut pas être réinitialisé sans votre clé de récupération</strong>.
-                  </div>
                   <FormField
                     type="password"
                     name="password-confirm"
@@ -208,59 +190,76 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
               )}
 
               <div className="auth-checks-block">
-                <label className="auth-check required">
-                  <input
-                    type="checkbox"
-                    name="age_confirmed"
-                    value="true"
-                    required
-                    checked={adult}
-                    onChange={e => setAdult(e.target.checked)}
-                  />
-                  <span className="auth-check-box"><IcoCheck /></span>
-                  <span>Je certifie avoir <strong>plus de 18 ans</strong>.</span>
-                </label>
-                {kcContext.messagesPerField.existsError('age_confirmed') && (
-                  <div className="auth-field-error" role="alert">
-                    {kcContext.messagesPerField.get('age_confirmed')}
-                  </div>
+                {ageFieldDeclared && (
+                  <>
+                    <label className="auth-check required">
+                      <input
+                        type="checkbox"
+                        name="age_confirmed"
+                        value="true"
+                        required
+                        checked={adult}
+                        onChange={e => setAdult(e.target.checked)}
+                      />
+                      <span className="auth-check-box"><IcoCheck /></span>
+                      <span>Je certifie avoir <strong>plus de 18 ans</strong>.</span>
+                    </label>
+                    {kcContext.messagesPerField.existsError('age_confirmed') && (
+                      <KcMessage className="auth-field-error" html={kcContext.messagesPerField.get('age_confirmed')} />
+                    )}
+                  </>
                 )}
 
                 <label className="auth-check required">
                   <input
                     type="checkbox"
-                    name="termsAccepted"
+                    name="terms_accepted"
+                    value="true"
+                    required
                     checked={terms}
                     onChange={e => setTerms(e.target.checked)}
                   />
                   <span className="auth-check-box"><IcoCheck /></span>
                   <span>
                     J'accepte les{' '}
-                    <a href={termsUrl} target="_blank" rel="noopener noreferrer" className="auth-link">
+                    <a href={termsUrl} target="_blank" rel="noopener noreferrer" className="auth-link" tabIndex={-1}>
                       Conditions générales
                     </a>{' '}
                     et la{' '}
-                    <a href={privacyUrl} target="_blank" rel="noopener noreferrer" className="auth-link">
+                    <a href={privacyUrl} target="_blank" rel="noopener noreferrer" className="auth-link" tabIndex={-1}>
                       Politique de confidentialité
                     </a>.
                   </span>
                 </label>
 
-                <label className="auth-check">
-                  <input
-                    type="checkbox"
-                    name="marketingConsent"
-                    checked={marketing}
-                    onChange={e => setMarketing(e.target.checked)}
-                  />
-                  <span className="auth-check-box"><IcoCheck /></span>
-                  <span>Recevoir les conseils de protection <em>(1 e-mail par mois max.)</em></span>
-                </label>
+                {kcContext.messagesPerField.existsError('terms_accepted') && (
+                  <KcMessage className="auth-field-error" html={kcContext.messagesPerField.get('terms_accepted')} />
+                )}
+
+                {marketingFieldDeclared && (
+                  <label className="auth-check">
+                    <input
+                      type="checkbox"
+                      name="marketing_consent"
+                      value="true"
+                      checked={marketing}
+                      onChange={e => setMarketing(e.target.checked)}
+                    />
+                    <span className="auth-check-box"><IcoCheck /></span>
+                    <span>Recevoir les conseils de protection <em>(1 email par mois max.)</em></span>
+                  </label>
+                )}
               </div>
 
-              <button type="submit" className="auth-cta" disabled={!adult || !terms}>
+              <button type="submit" className="auth-cta" disabled={!canSubmit}>
                 Créer mon compte <IcoArrow />
               </button>
+
+              {/* Les liens du libellé sont hors tabulation : ils restent accessibles au clavier ici, après le bouton. */}
+              <div className="auth-legal-kbd">
+                <a href={termsUrl} target="_blank" rel="noopener noreferrer" className="auth-link">Conditions générales</a>
+                <a href={privacyUrl} target="_blank" rel="noopener noreferrer" className="auth-link">Politique de confidentialité</a>
+              </div>
 
               <div className="auth-switch">
                 Vous avez déjà un compte&nbsp;?{' '}

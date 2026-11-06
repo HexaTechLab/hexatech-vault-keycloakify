@@ -1,6 +1,6 @@
 /**
  * CryptArc Design Tokens
- * Charte graphique officielle — page d'authentification
+ * Charte graphique officielle : page d'authentification
  */
 
 :root {
@@ -18,7 +18,7 @@
   --ink-3: #8a8780;
   --ink-4: #b6b3aa;
 
-  /* Accents — Vault green */
+  /* Accents : Vault green */
   --accent: #2d5d4f;
   --accent-2: #3d7a68;
   --accent-soft: #e7efe9;

@@ -1,4 +1,5 @@
 import { InputHTMLAttributes, forwardRef, ReactNode, useState } from 'react';
+import KcMessage from './KcMessage';
 
 const IcoMail = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -84,7 +85,7 @@ const FormField = forwardRef<HTMLInputElement, FormFieldProps>(function FormFiel
           </button>
         )}
       </div>
-      {error && <div className="auth-field-error" role="alert">{error}</div>}
+      {error && <KcMessage className="auth-field-error" html={error} />}
     </div>
   );
 });
