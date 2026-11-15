@@ -9,8 +9,8 @@ export default defineConfig({
       accountThemeImplementation: 'none',
       themeName: 'hexatech-vault',
       extraThemeProperties: [
-        'termsUrl=https://hexatechvault.com/terms',
-        'privacyUrl=https://hexatechvault.com/privacy',
+        'termsUrl=https://app.cryptarc.fr/legal/terms',
+        'privacyUrl=https://app.cryptarc.fr/legal/privacy',
       ],
     }),
   ],
