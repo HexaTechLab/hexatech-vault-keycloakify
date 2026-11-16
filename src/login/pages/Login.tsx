@@ -41,6 +41,9 @@ export default function Login({ kcContext, i18n }: LoginProps) {
   const { url, realm, usernameHidden, login, message, registrationDisabled } = kcContext;
   const { msg } = i18n;
   const social = (kcContext as any).social;
+  const registrationOpen = realm.registrationAllowed && !registrationDisabled;
+  // Fournie par l'environnement du conteneur Keycloak (CRYPTARC_LOGIN_NOTICE) ; vide = aucune ligne.
+  const loginNotice = kcContext.properties.CRYPTARC_LOGIN_NOTICE?.trim();
 
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -91,14 +94,16 @@ export default function Login({ kcContext, i18n }: LoginProps) {
 
         {/* Right form panel */}
         <div className="auth-right">
-          {/* Tabs */}
-          <div className="auth-tabs is-login" role="tablist">
-            <span role="tab" className="auth-tab active" aria-selected="true">Connexion</span>
-            <a href={url.registrationUrl} role="tab" className="auth-tab" aria-selected="false">
-              Inscription
-            </a>
-            <span className="auth-tab-indicator" aria-hidden="true" />
-          </div>
+          {/* Onglets : seulement si l'inscription est ouverte (sinon aucun onglet isolé ni lien mort). */}
+          {registrationOpen && (
+            <div className="auth-tabs is-login" role="tablist">
+              <span role="tab" className="auth-tab active" aria-selected="true">Connexion</span>
+              <a href={url.registrationUrl} role="tab" className="auth-tab" aria-selected="false">
+                Inscription
+              </a>
+              <span className="auth-tab-indicator" aria-hidden="true" />
+            </div>
+          )}
 
           {/* Card */}
           <div className="auth-card">
@@ -173,11 +178,13 @@ export default function Login({ kcContext, i18n }: LoginProps) {
                 Se connecter <IcoArrow />
               </button>
 
-              {realm.registrationAllowed && !registrationDisabled && (
+              {registrationOpen ? (
                 <div className="auth-switch">
                   Pas encore de compte&nbsp;?{' '}
                   <a href={url.registrationUrl}>Créer un compte</a>
                 </div>
+              ) : (
+                loginNotice && <div className="auth-switch">{loginNotice}</div>
               )}
             </form>
           </div>
