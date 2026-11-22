@@ -71,7 +71,7 @@ export default function SsoButtons({ social }: SsoButtonsProps) {
           </a>
         ))}
       </div>
-      <div className="auth-divider"><span>ou avec votre adresse e-mail</span></div>
+      <div className="auth-divider"><span>ou avec votre adresse email</span></div>
     </>
   );
 }

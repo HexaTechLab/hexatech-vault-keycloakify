@@ -37,9 +37,27 @@ const IcoLock = () => (
   </svg>
 );
 
+/**
+ * Adresse de l'application pour annuler. `url.loginUrl` ne convient pas : c'est une action de
+ * formulaire, inutilisable en lien simple. L'adresse de retour a déjà été validée par Keycloak pour
+ * ce client avant l'affichage de la page ; on n'en garde que l'origine.
+ */
+function getApplicationUrl(baseUrl: string | undefined): string | undefined {
+  if (baseUrl) return baseUrl;
+  try {
+    const target = new URL(
+      new URLSearchParams(window.location.search).get('post_logout_redirect_uri') ?? '',
+    );
+    return target.protocol === 'https:' || target.protocol === 'http:' ? `${target.origin}/` : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export default function LogoutConfirm({ kcContext, i18n }: LogoutConfirmProps) {
   const { url, client, logoutConfirm } = kcContext;
   const { msg } = i18n;
+  const applicationUrl = getApplicationUrl(client?.baseUrl);
 
   return (
     <div className="auth-shell">
@@ -48,7 +66,6 @@ export default function LogoutConfirm({ kcContext, i18n }: LogoutConfirmProps) {
           <div className="auth-brand-mark"><img src={logoMark} alt="CryptArc" /></div>
           <div>
             <div className="auth-brand-name">CryptArc</div>
-            <div className="auth-brand-sub">Coffre familial chiffré</div>
           </div>
         </div>
         <div className="auth-topbar-r">
@@ -57,7 +74,7 @@ export default function LogoutConfirm({ kcContext, i18n }: LogoutConfirmProps) {
           </button>
           <div className="auth-trust-pill">
             <IcoShield />
-            <span>Chiffrement E2EE · Hébergé en France</span>
+            <span>Documents chiffrés · stockés en France</span>
           </div>
         </div>
       </header>
@@ -72,8 +89,6 @@ export default function LogoutConfirm({ kcContext, i18n }: LogoutConfirmProps) {
             <h2>Déconnexion</h2>
             <p>
               Êtes-vous sûr de vouloir vous déconnecter&nbsp;?
-              <br />
-              Vos clés de chiffrement seront effacées de cette session.
             </p>
           </div>
 
@@ -86,12 +101,11 @@ export default function LogoutConfirm({ kcContext, i18n }: LogoutConfirmProps) {
             <input type="hidden" name="session_code" value={logoutConfirm.code} />
 
             <div className="auth-logout-actions">
-              <a
-                href={logoutConfirm.skipLink ? undefined : (client?.baseUrl ?? url.loginUrl)}
-                className="auth-btn-ghost"
-              >
-                {msg('doCancel')}
-              </a>
+              {applicationUrl && !logoutConfirm.skipLink && (
+                <a href={applicationUrl} className="auth-btn-ghost">
+                  {msg('doCancel')}
+                </a>
+              )}
               <button
                 type="submit"
                 name="confirmLogout"

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { KcContext } from '../KcContext';
 import type { I18n } from '../i18n';
 import FormField from '../components/FormField';
+import KcMessage, { alertClassName } from '../components/KcMessage';
 import SsoButtons from '../components/SsoButtons';
 import logoMark from '../../shared/assets/logo-mark.png';
 
@@ -59,7 +60,6 @@ export default function Login({ kcContext, i18n }: LoginProps) {
           <div className="auth-brand-mark"><img src={logoMark} alt="CryptArc" /></div>
           <div>
             <div className="auth-brand-name">CryptArc</div>
-            <div className="auth-brand-sub">Coffre familial chiffré</div>
           </div>
         </div>
         <div className="auth-topbar-r">
@@ -68,7 +68,7 @@ export default function Login({ kcContext, i18n }: LoginProps) {
           </button>
           <div className="auth-trust-pill">
             <IcoShield />
-            <span>Chiffrement E2EE · Hébergé en France</span>
+            <span>Documents chiffrés · stockés en France</span>
           </div>
         </div>
       </header>
@@ -79,14 +79,12 @@ export default function Login({ kcContext, i18n }: LoginProps) {
           <div className="auth-eyebrow">Bon retour</div>
           <h1>Vos documents vous attendent, <em>en sécurité.</em></h1>
           <p className="auth-lede">
-            Connectez-vous pour déverrouiller votre coffre familial. Vos clés sont chargées
-            localement le temps de votre session puis effacées à la déconnexion.
+            Connectez-vous pour accéder à votre coffre.
           </p>
           <div className="auth-trust-card">
             <div className="auth-trust-card-l"><IcoShield /></div>
             <div>
-              <strong>Chiffrement E2EE actif.</strong>
-              <span>Votre mot de passe ne quitte jamais votre appareil. Nous ne pouvons pas voir vos documents.</span>
+              <strong>Vos documents sont chiffrés (AES-256-GCM) et stockés en France.</strong>
             </div>
           </div>
         </div>
@@ -112,15 +110,12 @@ export default function Login({ kcContext, i18n }: LoginProps) {
             >
               <div className="auth-form-h">
                 <h2>Connexion</h2>
-                <p>Accédez à votre coffre familial chiffré.</p>
               </div>
 
               <SsoButtons social={social} />
 
               {message && (
-                <div className={`kc-alert${message.type === 'success' ? ' success' : ''}`} role="alert">
-                  {message.summary}
-                </div>
+                <KcMessage className={alertClassName(message.type)} html={message.summary} />
               )}
 
               {!usernameHidden && (
