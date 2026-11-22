@@ -17,6 +17,7 @@ const LoginResetPassword = lazy(() => import('./pages/LoginResetPassword'));
 const LoginVerifyEmail = lazy(() => import('./pages/LoginVerifyEmail'));
 const LoginIdpLinkConfirm = lazy(() => import('./pages/LoginIdpLinkConfirm'));
 const LoginIdpLinkEmail = lazy(() => import('./pages/LoginIdpLinkEmail'));
+const LoginUpdateProfile = lazy(() => import('./pages/LoginUpdateProfile'));
 const UserProfileFormFields = lazy(() => import('keycloakify/login/UserProfileFormFields'));
 
 export default function KcApp(props: { kcContext: KcContext }) {
@@ -49,6 +50,8 @@ export default function KcApp(props: { kcContext: KcContext }) {
             return <LoginIdpLinkConfirm kcContext={kcContext} i18n={i18n} />;
           case 'login-idp-link-email.ftl':
             return <LoginIdpLinkEmail kcContext={kcContext} i18n={i18n} />;
+          case 'login-update-profile.ftl':
+            return <LoginUpdateProfile kcContext={kcContext} i18n={i18n} />;
           default:
             // Page non habillée : apparence standard de Keycloak plutôt qu'un écran vide.
             return (

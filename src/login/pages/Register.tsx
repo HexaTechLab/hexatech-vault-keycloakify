@@ -5,6 +5,7 @@ import FormField from '../components/FormField';
 import KcMessage, { alertClassName } from '../components/KcMessage';
 import SsoButtons from '../components/SsoButtons';
 import logoMark from '../../shared/assets/logo-mark.png';
+import { consentValue, termsVersionLabel } from '../consent';
 
 interface RegisterProps {
   kcContext: KcContext & { pageId: 'register.ftl' };
@@ -53,6 +54,9 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
   const ageFieldDeclared = kcContext.profile.attributesByName['age_confirmed'] !== undefined;
   const canSubmit = terms && (adult || !ageFieldDeclared);
   const marketingFieldDeclared = kcContext.profile.attributesByName['marketing_consent'] !== undefined;
+  // Revue 20.3 (E4) : la valeur envoyée est la version des conditions déclarée par le realm.
+  const termsAttribute = kcContext.profile.attributesByName['terms_accepted'];
+  const termsVersion = termsAttribute ? termsVersionLabel(consentValue(termsAttribute)) : null;
 
   const firstNameRef = useRef<HTMLInputElement>(null);
 
@@ -196,13 +200,13 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
                       <input
                         type="checkbox"
                         name="age_confirmed"
-                        value="true"
+                        value={consentValue(kcContext.profile.attributesByName['age_confirmed'])}
                         required
                         checked={adult}
                         onChange={e => setAdult(e.target.checked)}
                       />
                       <span className="auth-check-box"><IcoCheck /></span>
-                      <span>Je certifie avoir <strong>plus de 18 ans</strong>.</span>
+                      <span>Je certifie avoir <strong>au moins 18 ans</strong>.</span>
                     </label>
                     {kcContext.messagesPerField.existsError('age_confirmed') && (
                       <KcMessage className="auth-field-error" html={kcContext.messagesPerField.get('age_confirmed')} />
@@ -214,7 +218,7 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
                   <input
                     type="checkbox"
                     name="terms_accepted"
-                    value="true"
+                    value={consentValue(termsAttribute)}
                     required
                     checked={terms}
                     onChange={e => setTerms(e.target.checked)}
@@ -228,7 +232,8 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
                     et la{' '}
                     <a href={privacyUrl} target="_blank" rel="noopener noreferrer" className="auth-link" tabIndex={-1}>
                       Politique de confidentialité
-                    </a>.
+                    </a>
+                    {termsVersion ? ` (version du ${termsVersion})` : ''}.
                   </span>
                 </label>
 
@@ -241,7 +246,7 @@ export default function Register({ kcContext, i18n }: RegisterProps) {
                     <input
                       type="checkbox"
                       name="marketing_consent"
-                      value="true"
+                      value={consentValue(kcContext.profile.attributesByName['marketing_consent'])}
                       checked={marketing}
                       onChange={e => setMarketing(e.target.checked)}
                     />
